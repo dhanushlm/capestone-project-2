@@ -1,0 +1,52 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = "dhanushlm/devops"
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                git branch: 'main', url: 'https://github.com/dhanushlm/capestone-project-2.git'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    def tag = sh(script: "date +%Y%m%d%H%M%S", returnStdout: true).trim()
+                    env.BUILD_TAG = tag
+                    sh "docker build -t $IMAGE_NAME:$tag ."
+                }
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh """
+                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                        docker push $IMAGE_NAME:$BUILD_TAG
+                    """
+                }
+            }
+        }
+
+        stage('Update Deployment YAML') {
+            steps {
+                script {
+                    sh """
+                        sed -i 's|image: .*|image: $IMAGE_NAME:$BUILD_TAG|' deployment.yaml
+                        git config --global user.email "dhanushlm06@gmail.com"
+                        git config --global user.name "dhanushlm"
+                        git add deployment.yaml
+                        git commit -m "Update image tag to $BUILD_TAG"
+                        git push origin master
+                    """
+                }
+            }
+        }
+    }
+}
+

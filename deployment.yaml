@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: website
-          image: dhanushlm/devops:website
+          image: dhanushlm/devops:capestone
           ports:
             - containerPort: 80
 

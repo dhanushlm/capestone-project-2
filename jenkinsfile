@@ -17,7 +17,7 @@ pipeline {
                 script {
                     def tag = sh(script: "date +%Y%m%d%H%M%S", returnStdout: true).trim()
                     env.BUILD_TAG = tag
-                    sh "sudo docker build -t $IMAGE_NAME:$tag ."
+                    sh "docker build -t $IMAGE_NAME:$tag ."
                 }
             }
         }

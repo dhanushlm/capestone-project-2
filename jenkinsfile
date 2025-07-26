@@ -1,5 +1,5 @@
 pipeline {
-    agent node-1
+    agent any
 
     environment {
         IMAGE_NAME = "dhanushlm/devops"
@@ -17,7 +17,7 @@ pipeline {
                 script {
                     def tag = sh(script: "date +%Y%m%d%H%M%S", returnStdout: true).trim()
                     env.BUILD_TAG = tag
-                    sh "docker build -t $IMAGE_NAME:$tag ."
+                    sh "sudo docker build -t $IMAGE_NAME:$tag ."
                 }
             }
         }
@@ -26,8 +26,8 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     sh """
-                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-                        docker push $IMAGE_NAME:$BUILD_TAG
+                        echo $DOCKER_PASS | sudo docker login -u $DOCKER_USER --password-stdin
+                        sudo docker push $IMAGE_NAME:$BUILD_TAG
                     """
                 }
             }
@@ -49,4 +49,3 @@ pipeline {
         }
     }
 }
-
